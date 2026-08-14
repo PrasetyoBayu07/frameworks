@@ -33,15 +33,22 @@ const {
 } = require('./index');
 
 // ============= CONFIGURATION =============
+let configModule;
+try {
+  configModule = require('./config');
+} catch (e) {
+  configModule = null;
+}
+
 const CONFIG = {
-  PORT: process.env.PORT || 3000,
-  MAX_SIZE: 10 * 1024 * 1024, // 10MB
+  PORT: (configModule && configModule.server && configModule.server.port) || process.env.PORT || 3000,
+  MAX_SIZE: (configModule && configModule.file && configModule.file.maxSize) || (10 * 1024 * 1024),
   RATE_LIMIT: {
-    window: 60000, // 1 minute
-    maxRequests: 100
+    window: (configModule && configModule.security && configModule.security.rateLimit && configModule.security.rateLimit.window) || 60000,
+    maxRequests: (configModule && configModule.security && configModule.security.rateLimit && configModule.security.rateLimit.maxRequests) || 100
   },
   CORS: {
-    allowOrigin: '*',
+    allowOrigin: (configModule && configModule.security && configModule.security.corsOrigin) || '*',
     allowMethods: 'GET, POST, OPTIONS',
     allowHeaders: 'Content-Type, Content-Length, X-Compression-Level'
   }
