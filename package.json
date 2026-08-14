@@ -7,8 +7,14 @@
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
+    "test": "node test.js",
+    "benchmark": "node benchmark.js",
+    "server": "node server.js",
+    "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
+  },
+  "bin": {
+    "lxrn": "./bin/lxrn.js"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

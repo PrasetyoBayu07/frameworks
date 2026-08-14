@@ -1,0 +1,23 @@
+# Default configuration for Lxrn
+server:
+  port: 3000
+  maxSize: 10485760  # 10MB
+  rateLimit:
+    window: 60000
+    maxRequests: 100
+
+compression:
+  defaultLevel: automatic
+  maxWindowSize: 32768
+  maxMatchLength: 258
+  minMatchLength: 3
+
+logging:
+  level: info
+  format: json
+  output: console
+
+cache:
+  enabled: true
+  maxSize: 100 # Number of items
+  ttl: 3600000 # 1 hour in ms
