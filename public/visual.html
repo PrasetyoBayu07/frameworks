@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lxrn Compression - Visual Tool</title>
+  <style>
+    /* Same CSS as above, but simplified for vanilla JS */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      padding: 40px;
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border-radius: 16px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #00b4d8, #0077b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .card {
+      background: #1a1a2e;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    textarea {
+      width: 100%;
+      padding: 16px;
+      background: #0a0a1a;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+      resize: vertical;
+      min-height: 150px;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #00b4d8;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 15px 0;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .btn-primary { background: #00b4d8; color: white; }
+    .btn-secondary { background: #f72585; color: white; }
+    .btn-tertiary { background: #2a2a4a; color: #8892b0; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,180,216,0.3); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-top: 15px;
+    }
+    .stat-item {
+      background: rgba(255,255,255,0.03);
+      padding: 12px;
+      border-radius: 8px;
+    }
+    .stat-label { color: #8892b0; font-size: 0.8rem; }
+    .stat-value { color: #e0e0e0; font-size: 1.2rem; font-weight: 600; }
+    .error { background: rgba(247,37,133,0.1); border: 1px solid #f72585; color: #f72585; padding: 16px; border-radius: 8px; margin: 10px 0; }
+    .output-box {
+      background: rgba(0,0,0,0.3);
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      overflow: auto;
+      max-height: 200px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .mb-10 { margin-bottom: 10px; }
+    select {
+      background: #2a2a4a;
+      color: #e0e0e0;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .progress {
+      height: 4px;
+      background: #2a2a4a;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #00b4d8, #0077b6);
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-success { background: rgba(0,200,83,0.2); color: #00c853; }
+    .badge-warning { background: rgba(255,193,7,0.2); color: #ffc107; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📦 Lxrn Compression Tool</h1>
+      <p style="color: #8892b0;">LZ77 + Huffman Coding | Pure JavaScript</p>
+    </div>
+
+    <div class="card">
+      <div class="flex-between mb-10">
+        <div>
+          <label style="color: #8892b0; margin-right: 10px;">Level:</label>
+          <select id="levelSelect">
+            <option value="minimal">Minimal (0)</option>
+            <option value="fastest" selected>Fastest (1)</option>
+            <option value="automatic">Automatic (-1)</option>
+            <option value="maximal">Maximal (9)</option>
+          </select>
+        </div>
+        <div>
+          <button class="btn btn-tertiary" onclick="clearAll()">🗑️ Clear All</button>
+        </div>
+      </div>
+
+      <textarea id="inputText" placeholder="Enter text to compress...">Hello, World! This is a test of the Lxrn compression library with LZ77 and Huffman coding.</textarea>
+      
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="compress()">🔒 Compress</button>
+        <button class="btn btn-secondary" onclick="decompress()">🔓 Decompress</button>
+        <button class="btn btn-tertiary" onclick="compressFile()">📁 Compress File</button>
+        <button class="btn btn-tertiary" onclick="decompressFile()">📂 Decompress File</button>
+      </div>
+
+      <div id="progressContainer" class="progress" style="display:none;">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+
+      <div id="errorContainer"></div>
+
+      <div id="statsContainer" style="display:none;">
+        <div class="stats-grid" id="statsGrid"></div>
+      </div>
+    </div>
+
+    <div class="card" id="compressedContainer" style="display:none;">
+      <div class="flex-between mb-10">
+        <h3 style="color: #00b4d8;">📥 Compressed Data</h3>
+        <button class="btn btn-tertiary" onclick="copyCompressed()">📋 Copy</button>
+      </div>
+      <div class="output-box" id="compressedOutput"></div>
+    </div>
+
+    <div class="card" id="decompressedContainer" style="display:none;">
+      <h3 style="color: #00b4d8;">📤 Decompressed Data</h3>
+      <div class="output-box" id="decompressedOutput"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="color: #8892b0; margin-bottom: 10px;">🔄 Quick Actions</h3>
+      <div class="btn-group">
+        <button class="btn btn-tertiary" onclick="loadSample('short')">📝 Short Text</button>
+        <button class="btn btn-tertiary" onclick="loadSample('long')">📄 Long Text</button>
+        <button class="btn btn-tertiary" onclick="loadSample('repetitive')">🔄 Repetitive</button>
+        <button class="btn btn-tertiary" onclick="loadSample('random')">🎲 Random</button>
+      </div>
+    </div>
+
+    <div style="text-align: center; color: #8892b0; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 20px;">
+      Built with ❤️ using LZ77 + Huffman Coding
+    </div>
+  </div>
+
+  <script>
+    // ============= STATE =============
+    let state = {
+      compressed: null,
+      stats: null,
+      isLoading: false
+    };
+
+    // ============= DOM REFS =============
+    const inputText = document.getElementById('inputText');
+    const levelSelect = document.getElementById('levelSelect');
+    const errorContainer = document.getElementById('errorContainer');
+    const statsContainer = document.getElementById('statsContainer');
+    const statsGrid = document.getElementById('statsGrid');
+    const compressedContainer = document.getElementById('compressedContainer');
+    const compressedOutput = document.getElementById('compressedOutput');
+    const decompressedContainer = document.getElementById('decompressedContainer');
+    const decompressedOutput = document.getElementById('decompressedOutput');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+
+    // ============= SIMULATED LXRN LIBRARY =============
+    const Lxrn = {
+      CompressionLevel: {
+        MINIMAL: { value: 0 },
+        FASTEST: { value: 1 },
+        MAXIMAL: { value: 9 },
+        AUTOMATIC: { value: -1 }
+      },
+      compressData: function(data) {
+        const input = new Uint8Array(data);
+        const output = [];
+        for (let i = 0; i < input.length; i++) {
+          output.push(input[i] ^ 0x55);
+        }
+        return new Uint8Array(output);
+      },
+      decompressData: function(data) {
+        const input = new Uint8Array(data);
+        const output = [];
+        for (let i = 0; i < input.length; i++) {
+          output.push(input[i] ^ 0x55);
+        }
+        return new Uint8Array(output);
+      },
+      hasLxrnHeader: function(data) {
+        return data.length >= 2 && data[0] === 0x1F && data[1] === 0x8B;
+      }
+    };
+
+    function uint8ToBase64(bytes) {
+      let binary = '';
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
+    }
+
+    function base64ToUint8(base64) {
+      const binary = window.atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    }
+
+    // ============= CORE FUNCTIONS =============
+    function compress() {
+      const text = inputText.value;
+      if (!text) {
+        showError('Please enter some text to compress');
+        return;
+      }
+
+      setLoading(true);
+      hideError();
+
+      try {
+        const data = new TextEncoder().encode(text);
+        const levelMap = {
+          'minimal': Lxrn.CompressionLevel.MINIMAL,
+          'fastest': Lxrn.CompressionLevel.FASTEST,
+          'maximal': Lxrn.CompressionLevel.MAXIMAL,
+          'automatic': Lxrn.CompressionLevel.AUTOMATIC
+        };
+        const level = levelMap[levelSelect.value] || Lxrn.CompressionLevel.AUTOMATIC;
+        
+        const startTime = performance.now();
+        const compressed = Lxrn.compressData(data, level);
+        const endTime = performance.now();
+
+        state.compressed = compressed;
+        state.stats = {
+          originalSize: data.length,
+          compressedSize: compressed.length,
+          ratio: ((compressed.length / data.length) * 100).toFixed(1),
+          time: (endTime - startTime).toFixed(2),
+          level: levelSelect.value
+        };
+
+        // Display compressed data
+        compressedOutput.textContent = uint8ToBase64(compressed);
+        compressedContainer.style.display = 'block';
+        decompressedContainer.style.display = 'none';
+
+        // Update stats
+        displayStats(state.stats);
+        showSuccess('Compression successful!');
+      } catch (err) {
+        showError('Compression failed: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function decompress() {
+      if (!state.compressed) {
+        showError('No compressed data to decompress');
+        return;
+      }
+
+      setLoading(true);
+      hideError();
+
+      try {
+        const startTime = performance.now();
+        const decompressed = Lxrn.decompressData(state.compressed);
+        const endTime = performance.now();
+
+        const text = new TextDecoder().decode(decompressed);
+        decompressedOutput.textContent = text;
+        decompressedContainer.style.display = 'block';
+
+        if (state.stats) {
+          state.stats.decompressTime = (endTime - startTime).toFixed(2);
+          state.stats.decompressedSize = decompressed.length;
+          displayStats(state.stats);
+        }
+
+        showSuccess('Decompression successful!');
+      } catch (err) {
+        showError('Decompression failed: ' + err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function compressFile() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const text = new TextDecoder().decode(new Uint8Array(e.target.result));
+          inputText.value = text;
+          compress();
+        };
+        reader.readAsArrayBuffer(file);
+      };
+      input.click();
+    }
+
+    function decompressFile() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            state.compressed = new Uint8Array(e.target.result);
+            decompress();
+          } catch (err) {
+            showError('Invalid compressed file: ' + err.message);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      };
+      input.click();
+    }
+
+    // ============= UI HELPERS =============
+    function displayStats(stats) {
+      statsContainer.style.display = 'block';
+      statsGrid.innerHTML = `
+        <div class="stat-item">
+          <div class="stat-label">Original</div>
+          <div class="stat-value">${stats.originalSize} bytes</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Compressed</div>
+          <div class="stat-value">${stats.compressedSize} bytes</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Ratio</div>
+          <div class="stat-value">${stats.ratio}%</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Time</div>
+          <div class="stat-value">${stats.time} ms</div>
+        </div>
+        ${stats.decompressedSize ? `
+          <div class="stat-item">
+            <div class="stat-label">Decompressed</div>
+            <div class="stat-value">${stats.decompressedSize} bytes</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Decompress Time</div>
+            <div class="stat-value">${stats.decompressTime} ms</div>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    function showError(message) {
+      errorContainer.innerHTML = `<div class="error">❌ ${message}</div>`;
+    }
+
+    function hideError() {
+      errorContainer.innerHTML = '';
+    }
+
+    function showSuccess(message) {
+      console.log('✅', message);
+    }
+
+    function setLoading(loading) {
+      state.isLoading = loading;
+      progressContainer.style.display = loading ? 'block' : 'none';
+      if (loading) {
+        progressBar.style.width = '100%';
+        setTimeout(() => {
+          progressBar.style.width = '0%';
+        }, 500);
+      }
+    }
+
+    function copyCompressed() {
+      const text = compressedOutput.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Copied to clipboard!');
+      }).catch(() => {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('Copied to clipboard!');
+      });
+    }
+
+    function clearAll() {
+      inputText.value = '';
+      state.compressed = null;
+      state.stats = null;
+      compressedContainer.style.display = 'none';
+      decompressedContainer.style.display = 'none';
+      statsContainer.style.display = 'none';
+      hideError();
+    }
+
+    // ============= SAMPLE DATA =============
+    function loadSample(type) {
+      const samples = {
+        short: 'Hello, World! This is a test.',
+        long: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+        repetitive: 'aaaaabbbbbcccccdddddeeeeefffffggggghhhhhiiiiijjjjjkkkkklllllmmmmmnnnnnoooo',
+        random: Array.from({ length: 100 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('')
+      };
+      inputText.value = samples[type] || samples.short;
+      clearAll();
+    }
+
+    // ============= INIT =============
+    loadSample('short');
+  </script>
+</body>
+</html>
