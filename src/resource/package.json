@@ -1,0 +1,35 @@
+{
+  "name": "lxrn-compression",
+  "version": "1.0.0",
+  "description": "Pure JavaScript compression library implementing LZ77 + Huffman coding with Gzip-compatible format",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "server": "node server.js",
+    "server:dev": "nodemon server.js",
+    "test": "node test.js",
+    "test:server": "node server-test.js",
+    "benchmark": "node benchmark.js",
+    "cli": "node cli.js",
+    "bundle": "browserify web-bundle.js -s Lxrn > lxrn.bundle.js"
+  },
+  "keywords": [
+    "compression",
+    "lz77",
+    "huffman",
+    "gzip",
+    "deflate",
+    "javascript",
+    "api",
+    "server"
+  ],
+  "author": "Lxrn",
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0",
+    "browserify": "^17.0.0"
+  }
+}
