@@ -1,0 +1,6 @@
+{
+  "name": "Lxrn Compression Studio",
+  "description": "Interactive playground, visualizer, and benchmark suite for the Lxrn Gzip-compatible LZ77 and Huffman compression engine.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
